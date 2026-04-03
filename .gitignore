@@ -12,3 +12,4 @@ wheels/
 *.env
 .python-version
 .telegram_update.session
+telegram_update.env
