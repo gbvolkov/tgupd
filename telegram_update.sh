@@ -11,12 +11,16 @@ set -eu
 #   <repo>/telegram_update.env   (optional, sourced if present)
 #
 # Example telegram_update.env:
+#   # Optional. Only needed if you want the extra MTProto source:
 #   TELEGRAM_API_ID=12345678
 #   TELEGRAM_API_HASH=0123456789abcdef0123456789abcdef
 #   TELEGRAM_SESSION_STRING=...
 #   # or omit TELEGRAM_SESSION_STRING and use a saved session file
 #
-# First interactive auth (one time, outside cron):
+# Basic public-source update:
+#   python3 telegram_update.py --unblock ./unblock.txt
+#
+# Optional first interactive auth for MTProto (one time, outside cron):
 #   TELEGRAM_API_ID=... TELEGRAM_API_HASH=... \
 #   python3 telegram_update.py --unblock ./unblock.txt --session-file ./.telegram_update.session
 #
@@ -34,7 +38,7 @@ REMOTE="${REMOTE:-origin}"
 BRANCH="${BRANCH:-main}"
 NO_INTERACTIVE="${NO_INTERACTIVE:-1}"
 PULL_REBASE="${PULL_REBASE:-1}"
-COMMIT_PREFIX="${COMMIT_PREFIX:-telegram: refresh auto IP block}"
+COMMIT_PREFIX="${COMMIT_PREFIX:-telegram: refresh auto network block}"
 LOCK_FILE="${LOCK_FILE:-$SCRIPT_DIR/.telegram_update.lock}"
 
 log() {
@@ -45,14 +49,11 @@ err() {
     printf '[telegram_update][ERR] %s\n' "$*" >&2
 }
 
-# Load optional env file (API credentials, session string, overrides)
+# Load optional env file (credentials are only needed for optional MTProto source)
 if [ -f "$ENV_FILE" ]; then
     # shellcheck disable=SC1090
     . "$ENV_FILE"
 fi
-
-: "${TELEGRAM_API_ID:?Set TELEGRAM_API_ID in environment or telegram_update.env}"
-: "${TELEGRAM_API_HASH:?Set TELEGRAM_API_HASH in environment or telegram_update.env}"
 
 [ -f "$UPDATER" ] || { err "telegram_update.py not found: $UPDATER"; exit 1; }
 [ -f "$UNBLOCK_FILE" ] || { err "unblock.txt not found: $UNBLOCK_FILE"; exit 1; }

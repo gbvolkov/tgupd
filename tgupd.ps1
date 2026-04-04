@@ -14,11 +14,15 @@ Default layout:
   <repo>\telegram_update.env   (optional, KEY=VALUE format)
 
 Example telegram_update.env:
+  # Optional. Only needed if you want the extra MTProto source:
   TELEGRAM_API_ID=12345678
   TELEGRAM_API_HASH=0123456789abcdef0123456789abcdef
   TELEGRAM_SESSION_STRING=...
 
-First interactive auth (one time, outside Task Scheduler):
+Basic public-source update:
+  python .\telegram_update.py --unblock .\unblock.txt
+
+Optional first interactive auth for MTProto (one time, outside Task Scheduler):
   $env:TELEGRAM_API_ID="..."
   $env:TELEGRAM_API_HASH="..."
   python .\telegram_update.py --unblock .\unblock.txt --session-file .\.telegram_update.session
@@ -214,22 +218,10 @@ function Main {
     $sessionFile = Get-Setting -Name "SESSION_FILE" -Default (Join-Path $scriptDir ".telegram_update.session")
     $remote = Get-Setting -Name "REMOTE" -Default "origin"
     $branch = Get-Setting -Name "BRANCH" -Default "main"
-    $commitPrefix = Get-Setting -Name "COMMIT_PREFIX" -Default "telegram: refresh auto IP block"
+    $commitPrefix = Get-Setting -Name "COMMIT_PREFIX" -Default "telegram: refresh auto network block"
     $lockFile = Get-Setting -Name "LOCK_FILE" -Default (Join-Path $scriptDir ".telegram_update.lock")
     $noInteractive = Test-Truthy -Value (Get-Setting -Name "NO_INTERACTIVE" -Default "1")
     $pullRebase = Test-Truthy -Value (Get-Setting -Name "PULL_REBASE" -Default "1")
-
-    $apiId = Get-EnvValue -Name "TELEGRAM_API_ID"
-    $apiHash = Get-EnvValue -Name "TELEGRAM_API_HASH"
-
-    if ([string]::IsNullOrWhiteSpace($apiId)) {
-        Write-Err "Set TELEGRAM_API_ID in environment or telegram_update.env"
-        return 2
-    }
-    if ([string]::IsNullOrWhiteSpace($apiHash)) {
-        Write-Err "Set TELEGRAM_API_HASH in environment or telegram_update.env"
-        return 2
-    }
 
     if (-not (Test-Path -LiteralPath $updater -PathType Leaf)) {
         Write-Err "telegram_update.py not found: $updater"
